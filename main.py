@@ -48,6 +48,8 @@ def cmdlist():
     print("Get users followed by target")
     pc.printout("fwersemail\t")
     print("Get email of target followers")
+    pc.printout("fwersfollorwes\t")
+    print("Get follorwes count of target followers")
     pc.printout("fwingsemail\t")
     print("Get email of users followed by target")
     pc.printout("fwersnumber\t")
