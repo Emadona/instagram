@@ -1344,7 +1344,7 @@ class Osintgram:
             for follow in followers:
                 user = self.api.user_info(str(follow['id']))
                 if 'follower_count' in user['user'] and user['user']['follower_count']:
-                    follow['email'] = user['user']['follower_count']
+                    follow['follower_count'] = user['user']['follower_count']
                     if len(results) > value:
                         break
                     results.append(follow)
