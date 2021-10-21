@@ -512,7 +512,7 @@ class Osintgram:
             content = self.api._call_api(endpoint)
            
             data = content['user_detail']['user']
-
+            print(content['user_detail'])
             pc.printout("[ID] ", pc.GREEN)
             pc.printout(str(data['pk']) + '\n')
             pc.printout("[FULL NAME] ", pc.RED)
