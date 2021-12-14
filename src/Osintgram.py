@@ -1275,6 +1275,112 @@ class Osintgram:
         else:
             pc.printout("Sorry! No results found :-(\n", pc.RED)
 
+    def get_fwersinfo(self):
+        if self.check_private_profile():
+            return
+
+        followers = []
+        
+        try:
+
+            pc.printout("Searching for bio of target followers... this can take a few minutes\n")
+
+            rank_token = AppClient.generate_uuid()
+            data = self.api.user_followers(str(self.target_id), rank_token=rank_token)
+
+            for user in data.get('users', []):
+                u = {
+                    'id': user['pk'],
+                    'username': user['username'],
+                    'full_name': user['full_name']
+                }
+                followers.append(u)
+
+            next_max_id = data.get('next_max_id')
+            while next_max_id:
+                sys.stdout.write("\rCatched %i followers bio" % len(followers))
+                sys.stdout.flush()
+                results = self.api.user_followers(str(self.target_id), rank_token=rank_token, max_id=next_max_id)
+                
+                for user in results.get('users', []):
+                    u = {
+                        'id': user['pk'],
+                        'username': user['username'],
+                        'full_name': user['full_name']
+                    }
+                    followers.append(u)
+
+                next_max_id = results.get('next_max_id')
+            
+            print("\n")
+
+            results = []
+            
+            pc.printout("Do you want to get all bio? y/n: ", pc.YELLOW)
+            value = input()
+            
+            if value == str("y") or value == str("yes") or value == str("Yes") or value == str("YES"):
+                value = len(followers)
+            elif value == str(""):
+                print("\n")
+                return
+            elif value == str("n") or value == str("no") or value == str("No") or value == str("NO"):
+                while True:
+                    try:
+                        pc.printout("How many bio do you want to get? ", pc.YELLOW)
+                        new_value = int(input())
+                        value = new_value - 1
+                        break
+                    except ValueError:
+                        pc.printout("Error! Please enter a valid integer!", pc.RED)
+                        print("\n")
+                        return
+            else:
+                pc.printout("Error! Please enter y/n :-)", pc.RED)
+                print("\n")
+                return
+
+            for follow in followers:
+                user = self.api.user_info(str(follow['id']))
+                if 'biography' in user['user'] and user['user']['biography']:
+                    follow['biography'] = user['user']['biography']
+                    if len(results) > value:
+                        break
+                    results.append(follow)
+
+        except ClientThrottledError  as e:
+            pc.printout("\nError: Instagram blocked the requests. Please wait a few minutes before you try again.", pc.RED)
+            pc.printout("\n")
+
+        if len(results) > 0:
+
+            t = PrettyTable(['ID', 'Username', 'Full Name', 'biography'])
+            t.align["ID"] = "l"
+            t.align["Username"] = "l"
+            t.align["Full Name"] = "l"
+            t.align["biography"] = "l"
+
+            json_data = {}
+
+            for node in results:
+                t.add_row([str(node['id']), node['username'], node['full_name'], node['biography']])
+
+            if self.writeFile:
+                file_name = self.output_dir + "/" + self.target + "_fwersbio.txt"
+                file = open(file_name, "w")
+                file.write(str(t))
+                file.close()
+
+            if self.jsonDump:
+                json_data['biography'] = results
+                json_file_name = self.output_dir + "/" + self.target + "_fwersbio.json"
+                with open(json_file_name, 'w') as f:
+                    json.dump(json_data, f)
+
+            print(t)
+        else:
+            pc.printout("Sorry! No results found :-(\n", pc.RED)
+
 
     def get_fwersfollowers(self):
         if self.check_private_profile():
@@ -1488,6 +1594,114 @@ class Osintgram:
             print(t)
         else:
             pc.printout("Sorry! No results found :-(\n", pc.RED)
+
+
+    def get_fwingsinfo(self):
+        if self.check_private_profile():
+            return
+
+        followings = []
+
+        try:
+
+            pc.printout("Searching for emails of users followed by target... this can take a few minutes\n")
+
+            rank_token = AppClient.generate_uuid()
+            data = self.api.user_following(str(self.target_id), rank_token=rank_token)
+
+            for user in data.get('users', []):
+                u = {
+                    'id': user['pk'],
+                    'username': user['username'],
+                    'full_name': user['full_name']
+                }
+                followings.append(u)
+
+            next_max_id = data.get('next_max_id')
+            
+            while next_max_id:
+                results = self.api.user_following(str(self.target_id), rank_token=rank_token, max_id=next_max_id)
+
+                for user in results.get('users', []):
+                    u = {
+                        'id': user['pk'],
+                        'username': user['username'],
+                        'full_name': user['full_name']
+                    }
+                    followings.append(u)
+
+                next_max_id = results.get('next_max_id')
+        
+            results = []
+            
+            pc.printout("Do you want to get all info? y/n: ", pc.YELLOW)
+            value = input()
+            
+            if value == str("y") or value == str("yes") or value == str("Yes") or value == str("YES"):
+                value = len(followings)
+            elif value == str(""):
+                print("\n")
+                return
+            elif value == str("n") or value == str("no") or value == str("No") or value == str("NO"):
+                while True:
+                    try:
+                        pc.printout("How many info do you want to get? ", pc.YELLOW)
+                        new_value = int(input())
+                        value = new_value - 1
+                        break
+                    except ValueError:
+                        pc.printout("Error! Please enter a valid integer!", pc.RED)
+                        print("\n")
+                        return
+            else:
+                pc.printout("Error! Please enter y/n :-)", pc.RED)
+                print("\n")
+                return
+
+            for follow in followings:
+                sys.stdout.write("\rCatched %i followings email" % len(results))
+                sys.stdout.flush()
+                user = self.api.user_info(str(follow['id']))
+                if 'public_email' in user['user'] and user['user']['public_email']:
+                    follow['email'] = user['user']['public_email']
+                    if len(results) > value:
+                        break
+                    results.append(follow)
+        
+        except ClientThrottledError as e:
+            pc.printout("\nError: Instagram blocked the requests. Please wait a few minutes before you try again.", pc.RED)
+            pc.printout("\n")
+        
+        print("\n")
+
+        if len(results) > 0:
+            t = PrettyTable(['ID', 'Username', 'Full Name', 'Email'])
+            t.align["ID"] = "l"
+            t.align["Username"] = "l"
+            t.align["Full Name"] = "l"
+            t.align["Email"] = "l"
+
+            json_data = {}
+
+            for node in results:
+                t.add_row([str(node['id']), node['username'], node['full_name'], node['email']])
+
+            if self.writeFile:
+                file_name = self.output_dir + "/" + self.target + "_fwingsemail.txt"
+                file = open(file_name, "w")
+                file.write(str(t))
+                file.close()
+
+            if self.jsonDump:
+                json_data['followings_email'] = results
+                json_file_name = self.output_dir + "/" + self.target + "_fwingsemail.json"
+                with open(json_file_name, 'w') as f:
+                    json.dump(json_data, f)
+
+            print(t)
+        else:
+            pc.printout("Sorry! No results found :-(\n", pc.RED)
+
 
     def get_fwingsnumber(self):
         if self.check_private_profile():
