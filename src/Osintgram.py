@@ -1286,7 +1286,7 @@ class Osintgram:
             pc.printout("Searching for bio of target followers... this can take a few minutes\n")
 
             rank_token = AppClient.generate_uuid()
-            data = self.api.user_followers(str(self.target_id), rank_token=rank_token)
+            data = self.api.user_following(str(self.target_id), rank_token=rank_token)
 
             for user in data.get('users', []):
                 u = {
